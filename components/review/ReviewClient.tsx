@@ -363,49 +363,6 @@ Corrective actions should prioritize resolving flagged discrepancies in attendan
 
           </div>
 
-          {/* Compliance & Anomaly Section (Hidden in print if empty) */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4 print:break-inside-avoid">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-800 border-b border-gray-150 pb-2 flex items-center gap-2">
-              <span>NGO Compliance & Risk Audit Log</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                metrics.anomalies.length > 0 ? 'bg-red-50 text-red-600 border border-red-200/50' : 'bg-green-50 text-green-600 border border-green-200/50'
-              }`}>
-                {metrics.anomalies.length} Flagged
-              </span>
-            </h3>
-
-            {metrics.anomalies.length === 0 ? (
-              <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50/50 p-4 text-sm text-green-800">
-                <CheckCircle className="h-5 w-5 shrink-0 text-green-600" />
-                <div>
-                  <span className="font-semibold">Compliance Audit Passed: </span>
-                  <span>No operational discrepancies, budget frontloading, or evidence gaps detected.</span>
-                </div>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {metrics.anomalies.map((anom, idx) => (
-                  <div key={idx} className="py-3 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-start gap-2.5">
-                    <span className={`inline-flex items-center justify-center text-[10px] font-bold px-2 py-0.5 rounded shrink-0 w-20 text-center uppercase tracking-wide ${
-                      anom.level === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                      {anom.level}
-                    </span>
-                    <div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-xs font-bold text-gray-900">{anom.type}</span>
-                        <span className="text-[10px] text-gray-400 font-semibold">· {anom.location}</span>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
-                        {anom.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Executive review generator */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6 print:border-none print:shadow-none print:p-0">
             
@@ -566,6 +523,49 @@ Corrective actions should prioritize resolving flagged discrepancies in attendan
 
             </div>
 
+          </div>
+
+          {/* Compliance & Anomaly Section (Hidden in print if empty) */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4 print:break-inside-avoid">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-800 border-b border-gray-150 pb-2 flex items-center gap-2">
+              <span>NGO Compliance & Risk Audit Log</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                metrics.anomalies.length > 0 ? 'bg-red-50 text-red-600 border border-red-200/50' : 'bg-green-50 text-green-600 border border-green-200/50'
+              }`}>
+                {metrics.anomalies.length} Flagged
+              </span>
+            </h3>
+
+            {metrics.anomalies.length === 0 ? (
+              <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50/50 p-4 text-sm text-green-800">
+                <CheckCircle className="h-5 w-5 shrink-0 text-green-600" />
+                <div>
+                  <span className="font-semibold">Compliance Audit Passed: </span>
+                  <span>No operational discrepancies, budget frontloading, or evidence gaps detected.</span>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {metrics.anomalies.map((anom, idx) => (
+                  <div key={idx} className="py-3 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-start gap-2.5">
+                    <span className={`inline-flex items-center justify-center text-[10px] font-bold px-2 py-0.5 rounded shrink-0 w-20 text-center uppercase tracking-wide ${
+                      anom.level === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}>
+                      {anom.level}
+                    </span>
+                    <div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xs font-bold text-gray-900">{anom.type}</span>
+                        <span className="text-[10px] text-gray-400 font-semibold">· {anom.location}</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
+                        {anom.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
