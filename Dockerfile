@@ -14,6 +14,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 ENV PORT 10000
+ENV HOSTNAME "0.0.0.0"
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Create non-root user
