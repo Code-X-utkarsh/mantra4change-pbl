@@ -1,133 +1,104 @@
 # Mantra4Change PBL Program Intelligence & Grant Reporting Assistant
 
-This project is the PBL Program Intelligence & Grant Reporting Assistant for Mantra4Change. It is built using Next.js 14, TypeScript, Tailwind CSS, SQLite, and `better-sqlite3`.
+A production-grade, state-of-the-art Next.js 14 web application and intelligence platform built to monitor, evaluate, and report on Project-Based Learning (PBL) programs. The platform supports complex analytical calculations, dual-model LLM narrative failovers, interactive program dashboards, and structured NGO evaluation templates.
 
-## Phase 1 Setup
+Live Application: **[https://mantra4change-pbl-hvi4.onrender.com](https://mantra4change-pbl-hvi4.onrender.com)**
 
-To set up the project and ingest the data, follow these steps:
+---
 
-### 1. Install dependencies
-Install all the required npm packages:
+## 🌟 Architecture & Features
+
+```mermaid
+graph TD
+    A[Raw CSV Ingestion July/Aug/Sept] -->|Python Seed Script| B[(SQLite Database)]
+    B --> C[Next.js App Server]
+    C -->|Calculations Engine lib/calculations.ts| D[REST API Layer /api/*]
+    D -->|State Management & Filter Pipelines| E[Responsive Tailwind UI]
+    E --> F[Dashboard KPIs & Rankings]
+    E --> G[Grant Reporting Hub]
+    E --> H[Program Review Workspace]
+    G & H -->|Gemini 2.5 Flash / Nvidia Llama 3.3 70B Failover| I[Dynamic AI Report Generator]
+```
+
+### 1. Calculation Engine (`/lib/calculations.ts`)
+A fully deterministic, zero-dependency mathematical engine processing raw SQLite records to compute program status:
+- **Participation Rate**: Ratio of schools submitting student progress data.
+- **Evidence Submission Rate**: Percentage of active schools providing media evidence.
+- **Attendance Rate**: Average student attendance computed across classrooms.
+- **MoM Change**: Month-over-month percentage delta for program telemetry.
+- **Risk Classifications**: Evaluates thresholds (`On Track` vs `Behind` vs `At Risk`).
+
+### 2. Dual-LLM Failover System
+The reporting engines utilize a resilient primary-to-secondary LLM configuration:
+- **Primary Model**: Google Gemini (via `@google/generative-ai` SDK).
+- **Secondary Model**: Meta Llama 3.3 70B Instruct (via OpenAI-compatible NVIDIA NIM API).
+- **Fallback**: Pre-configured deterministic templates if both API channels fail.
+
+---
+
+## 🚀 Local Quickstart
+
+### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Place CSVs in the /data folder
-Ensure that the following 6 CSV data files are placed in the `/data` folder at the root of the project:
-*   `PBL_School_Response_Data_July_2025.csv`
-*   `PBL_School_Response_Data_August_2025.csv`
-*   `PBL_School_Response_Data_September_2025.csv`
-*   `01_Grant_Profile_and_Finance.csv`
-*   `02_Grant_Performance_and_Report_Material.csv`
-*   `03_Evidence_and_Media_Index.csv`
-
-*(Note: The CSV files inside the `/data` folder are git-ignored, except for `.gitkeep`).*
-
-### 3. Seed the SQLite database
-Run the database seed script to initialize the schema and ingest all CSV records:
+### 2. Ingestion & Seeding
+Place the 6 raw program CSVs in the `/data` directory and run the database bootstrapper:
 ```bash
 npm run seed
 ```
-This script will recreate all 6 tables in WAL mode and print an ingestion summary to the console upon completion.
+This initializes a high-performance SQLite database (`/db/db.sqlite`) in WAL mode.
 
-### 4. Start the development server
-Run the Next.js development server:
+### 3. Environment Setup
+Create a `.env` file at the project root:
+```env
+GEMINI_API_KEY=your_gemini_key_here
+
+# Secondary OpenAI-Compatible LLM (Nvidia NIM, OpenRouter, Llama)
+SECONDARY_LLM_API_KEY=your_llama_nvidia_api_key_here
+SECONDARY_LLM_ENDPOINT=https://integrate.api.nvidia.com/v1
+SECONDARY_LLM_MODEL=meta/llama-3.3-70b-instruct
+```
+
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
-
-### 5. Verify database records
-Visit the health check API endpoint to verify that all counts match the source datasets:
-*   URL: [http://localhost:3000/api/health](http://localhost:3000/api/health)
-*   Expected row counts:
-    *   `schools`: 2300
-    *   `monthly_records`: 6900
-    *   `grants`: 3
-    *   `grant_finance`: 45
-    *   `grant_performance`: 9
-    *   `evidence_media`: 9
+Visit the local dashboard at: `http://localhost:3000`
 
 ---
 
-## Phase 2 API Reference
+## 📦 Containerization & Render Deployment
 
-All dashboard metrics endpoints work with no filters (returns all data across all months).
+The platform is designed to build and deploy as a Docker container, running a standalone optimized Next.js node bundle.
 
-### curl Examples for All 8 Routes
+### Dockerfile Highlights
+- **Multi-stage build**: Builder layer compiles assets, while a slim Alpine layer runs the server.
+- **Native compilation**: Installs `g++`, `make`, and `python3` dynamically inside the builder to compile `better-sqlite3` bindings for Alpine Linux.
+- **Security**: Runs under a non-root `nextjs` user.
+- **Port & Hostname Routing**: Configured to bind on `0.0.0.0` and port `10000` for Render load balancers.
 
-1.  **Get Filter Options**
-    ```bash
-    curl http://localhost:3000/api/filters
-    ```
-
-2.  **Get Blocks Filter**
-    ```bash
-    curl http://localhost:3000/api/filters/blocks?district=District+A
-    ```
-
-3.  **Get KPI Metrics**
-    ```bash
-    curl http://localhost:3000/api/dashboard/kpis?month=2025-09
-    ```
-
-4.  **Get District Rankings**
-    ```bash
-    curl http://localhost:3000/api/dashboard/districts?month=2025-09
-    ```
-
-5.  **Get Block Rankings**
-    ```bash
-    curl http://localhost:3000/api/dashboard/blocks?month=2025-09
-    ```
-
-6.  **Get Grants List**
-    ```bash
-    curl http://localhost:3000/api/grants
-    ```
-
-7.  **Get Grant Details**
-    ```bash
-    curl http://localhost:3000/api/grants/GRANT_AA_2025?month=2025-09
-    ```
-
-8.  **Get Schools List**
-    ```bash
-    curl "http://localhost:3000/api/schools?month=2025-09&district=District+A"
-    ```
-
-### Expected Response Shape for `/api/dashboard/kpis?month=2025-09`
-
-```json
-{
-  "success": true,
-  "data": {
-    "filters": {
-      "month": "2025-09"
-    },
-    "current": {
-      "totalSchools": 2300,
-      "participatingSchools": 2119,
-      "participationRate": 92.13,
-      "evidenceRate": 75.39,
-      "totalEnrollment": 402142,
-      "totalAttendance": 487336,
-      "attendanceRate": 63.97,
-      "riskStatus": "On Track"
-    },
-    "previous": {
-      "totalSchools": 2300,
-      "participatingSchools": 1899,
-      "participationRate": 82.57,
-      "evidenceRate": 60.65,
-      "totalEnrollment": 402142,
-      "totalAttendance": 418667,
-      "attendanceRate": 55.22,
-      "riskStatus": "On Track"
-    },
-    "momChange": {
-      "participationRate": 11.58,
-      "attendanceRate": 15.85
-    }
-  }
-}
+### Build and Run Docker Locally
+```bash
+docker build -t pbl-assistant .
+docker run -p 10000:10000 --env-file .env pbl-assistant
 ```
+
+---
+
+## 🛠️ API Routes Reference
+
+| Method | Endpoint | Query Parameters | Description |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/health` | None | Returns database status & row counts |
+| **GET** | `/api/filters` | None | Lists available Months, Districts, Grades, Subjects |
+| **GET** | `/api/filters/blocks` | `?district=Name` | Returns blocks corresponding to a district |
+| **GET** | `/api/dashboard/kpis` | `?month=YYYY-MM&district=...&block=...` | Returns active KPIs and MoM changes |
+| **GET** | `/api/dashboard/districts` | `?month=YYYY-MM` | Returns school metric performance by district |
+| **GET** | `/api/dashboard/blocks` | `?month=YYYY-MM` | Returns school metric performance by block |
+| **GET** | `/api/schools` | `?month=YYYY-MM&district=...&block=...` | Returns granular list of school statuses |
+| **GET** | `/api/grants` | None | Lists available donor grants |
+| **GET** | `/api/grants/[id]` | `?month=YYYY-MM` | Returns budget lines and media indices for a grant |
+| **POST**| `/api/grants/generate-narrative`| Body: `{ grantId, month, facts }` | Triggers LLM/Llama narrative report generation |
+| **POST**| `/api/review/generate` | Body: `{ month, district, facts }` | Generates NGO Program Evaluation & Corrective Plan |
