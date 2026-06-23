@@ -70,12 +70,14 @@ export default function GrantNarrativePanel({
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [genModel, setGenModel] = useState<string | null>(null);
 
   // Initialize/reset text when grant details change
   useEffect(() => {
     setNarrative(performance?.draftReportText || '');
     setActiveTab('draft');
     setError(null);
+    setGenModel(null);
   }, [performance, grantId, month]);
 
   if (!performance) {
@@ -106,6 +108,7 @@ export default function GrantNarrativePanel({
   // Action: Use Deterministic Summary
   const handleUseDeterministic = () => {
     setError(null);
+    setGenModel(null);
     const text = buildDeterministicNarrative(grantDetail);
     setNarrative(text);
     setActiveTab('deterministic');
@@ -143,9 +146,11 @@ export default function GrantNarrativePanel({
 
       if (response.ok && resJson.success && resJson.data?.narrative) {
         setNarrative(resJson.data.narrative);
+        setGenModel(resJson.data.model || 'AI Model');
         setActiveTab('ai');
       } else {
         setError(resJson.error || 'AI generation failed');
+        setGenModel(null);
         // Fall back to rule-based deterministic summary
         const fallbackText = buildDeterministicNarrative(grantDetail);
         setNarrative(fallbackText);
@@ -154,6 +159,7 @@ export default function GrantNarrativePanel({
     } catch (err) {
       console.error(err);
       setError('A network error occurred while calling the AI model.');
+      setGenModel(null);
       // Fall back
       const fallbackText = buildDeterministicNarrative(grantDetail);
       setNarrative(fallbackText);
@@ -216,30 +222,49 @@ export default function GrantNarrativePanel({
         <div className="lg:col-span-6 flex flex-col justify-between space-y-4">
           
           {/* Controls Bar */}
-          <div className="flex flex-wrap gap-2.5">
-            <button
-              onClick={handleUseDeterministic}
-              disabled={isGenerating}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                activeTab === 'deterministic' || activeTab === 'draft'
-                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Use Deterministic Summary
-            </button>
-            <button
-              onClick={handleGenerateAI}
-              disabled={isGenerating}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                activeTab === 'ai'
-                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-indigo-300 hover:text-indigo-600'
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
-              Generate with AI ✨
-            </button>
+          <div className="flex flex-wrap gap-2.5 items-center justify-between">
+            <div className="flex gap-2">
+              <button
+                onClick={handleUseDeterministic}
+                disabled={isGenerating}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                  activeTab === 'deterministic'
+                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Use Deterministic Summary
+              </button>
+              <button
+                onClick={handleGenerateAI}
+                disabled={isGenerating}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                  activeTab === 'ai'
+                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-indigo-300 hover:text-indigo-600'
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                Generate with AI ✨
+              </button>
+            </div>
+            
+            {/* Status Badges */}
+            {activeTab === 'ai' && genModel && (
+              <span className="text-[10px] px-2 py-0.5 bg-green-50 border border-green-200 text-green-700 font-mono rounded">
+                Model: {genModel}
+              </span>
+            )}
+            {activeTab === 'deterministic' && (
+              <span className="text-[10px] px-2 py-0.5 bg-gray-50 border border-gray-200 text-gray-500 font-mono rounded">
+                Source: Rule-based
+              </span>
+            )}
+            {activeTab === 'draft' && (
+              <span className="text-[10px] px-2 py-0.5 bg-gray-50 border border-gray-200 text-gray-500 font-mono rounded">
+                Source: Original Draft
+              </span>
+            )}
           </div>
 
           {/* Narrative Text Container */}

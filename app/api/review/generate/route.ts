@@ -64,8 +64,14 @@ Write in a formal, analytical evaluation tone. Do not invent any numbers, region
 
     // 2. Try Secondary Model: Llama (or other OpenAI-compatible endpoints)
     const secondaryKey = process.env.SECONDARY_LLM_API_KEY;
-    const secondaryEndpoint = process.env.SECONDARY_LLM_ENDPOINT || 'https://integrate.api.nvidia.com/v1/chat/completions';
+    let secondaryEndpoint = process.env.SECONDARY_LLM_ENDPOINT || 'https://integrate.api.nvidia.com/v1/chat/completions';
     const secondaryModel = process.env.SECONDARY_LLM_MODEL || 'meta-llama/llama-3.2-3b-instruct';
+
+    if (secondaryEndpoint && !secondaryEndpoint.endsWith('/chat/completions') && !secondaryEndpoint.endsWith('/completions')) {
+      secondaryEndpoint = secondaryEndpoint.endsWith('/')
+        ? `${secondaryEndpoint}chat/completions`
+        : `${secondaryEndpoint}/chat/completions`;
+    }
 
     if (secondaryKey && secondaryKey !== 'your_llama_api_key_here' && secondaryKey.trim() !== '') {
       try {
