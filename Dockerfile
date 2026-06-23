@@ -13,7 +13,7 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
-ENV PORT 8080
+ENV PORT 10000
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Create non-root user
@@ -27,6 +27,6 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/db ./db
 
 USER nextjs
-EXPOSE 8080
+EXPOSE 10000
 
 CMD ["node", "server.js"]
